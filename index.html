@@ -1,0 +1,144 @@
+// Basic React app with ethers.js for Ethereum wallet generation and email binding
+// Includes simple UI with emojis and animations
+
+import React, { useState } from 'react';
+import { ethers } from 'ethers';
+import './App.css'; // Add basic styles and emoji animations
+
+function App() {
+  const [wallet, setWallet] = useState(null);
+  const [email, setEmail] = useState('');
+  const [isBound, setIsBound] = useState(false);
+  const [balance, setBalance] = useState(null);
+  const [status, setStatus] = useState('');
+
+  const generateWallet = () => {
+    const newWallet = ethers.Wallet.createRandom();
+    setWallet(newWallet);
+    setStatus('🌟 Wallet generated! Save your keys securely.');
+    setTimeout(() => setStatus(''), 5000); // Clear status after 5 seconds
+  };
+
+  const handleEmailBinding = () => {
+    if (!wallet) {
+      setStatus('⚠️ Please generate a wallet first!');
+      return;
+    }
+    // Simulate email binding (replace with backend API call in production)
+    setIsBound(true);
+    setStatus('📧 Email successfully bound to your wallet!');
+    setTimeout(() => setStatus(''), 5000);
+  };
+
+  const checkBalance = async () => {
+    if (!wallet) {
+      setStatus('⚠️ Please generate a wallet first!');
+      return;
+    }
+    const provider = ethers.getDefaultProvider('goerli'); // Using Goerli testnet
+    const walletBalance = await provider.getBalance(wallet.address);
+    setBalance(ethers.utils.formatEther(walletBalance));
+    setStatus('💰 Balance fetched!');
+    setTimeout(() => setStatus(''), 5000);
+  };
+
+  return (
+    <div className="App">
+      <h1>🌐 MailChain Wallet</h1>
+      <p>Create a wallet, bind your email, and manage ERC-20 tokens easily! 🚀</p>
+
+      {!wallet ? (
+        <button onClick={generateWallet} className="btn">
+          ✨ Generate Wallet
+        </button>
+      ) : (
+        <div>
+          <p>🔑 Wallet Address:</p>
+          <textarea value={wallet.address} readOnly className="textarea" />
+
+          {!isBound ? (
+            <div>
+              <input
+                type="email"
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="input"
+              />
+              <button onClick={handleEmailBinding} className="btn">
+                📧 Bind Email
+              </button>
+            </div>
+          ) : (
+            <p>✅ Email bound to wallet: {email}</p>
+          )}
+
+          <button onClick={checkBalance} className="btn">
+            💰 Check Balance
+          </button>
+
+          {balance && <p>Balance: {balance} ETH</p>}
+        </div>
+      )}
+
+      {status && <div className="status">{status}</div>}
+    </div>
+  );
+}
+
+export default App;
+
+// CSS (App.css)
+// .App {
+//   text-align: center;
+//   font-family: Arial, sans-serif;
+//   margin: 2rem;
+// }
+
+// .btn {
+//   padding: 0.5rem 1rem;
+//   margin: 0.5rem;
+//   font-size: 1rem;
+//   cursor: pointer;
+//   border: none;
+//   border-radius: 5px;
+//   background-color: #4caf50;
+//   color: white;
+//   transition: transform 0.2s;
+// }
+
+// .btn:hover {
+//   transform: scale(1.1);
+// }
+
+// .textarea {
+//   width: 80%;
+//   height: 2rem;
+//   margin: 0.5rem;
+//   font-size: 0.9rem;
+//   padding: 0.5rem;
+//   border-radius: 5px;
+// }
+
+// .input {
+//   padding: 0.5rem;
+//   margin: 0.5rem;
+//   border: 1px solid #ccc;
+//   border-radius: 5px;
+// }
+
+// .status {
+//   margin: 1rem;
+//   font-size: 1rem;
+//   color: #f39c12;
+//   animation: fade-in 2s;
+// }
+
+// @keyframes fade-in {
+//   from {
+//     opacity: 0;
+//   }
+//   to {
+//     opacity: 1;
+//   }
+// }
