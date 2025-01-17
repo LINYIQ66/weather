@@ -27,20 +27,14 @@ function App() {
     try {
       setStatus('Fetching weather data... 🌍');
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&cnt=16&appid=YOUR_API_KEY&units=metric`
+        `https://wttr.in/${city}?format=j1`
       );
       const data = await response.json();
 
-      if (data.cod !== '200') {
-        setStatus(`⚠️ Error: ${data.message}`);
-        setForecast([]);
-        return;
-      }
-
-      const dailyForecast = data.list.map((item) => ({
-        date: new Date(item.dt * 1000).toLocaleDateString(),
-        temp: item.main.temp,
-        description: item.weather[0].description,
+      const dailyForecast = data.weather.map((day) => ({
+        date: day.date,
+        temp: day.avgtempC,
+        description: day.hourly[0].weatherDesc[0].value.toLowerCase(),
       }));
 
       setForecast(dailyForecast);
