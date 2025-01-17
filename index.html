@@ -1,87 +1,85 @@
-// Basic React app with ethers.js for Ethereum wallet generation and email binding
-// Includes simple UI with emojis and animations
+// Weather Forecast Web App with Emoji Descriptions
+// Users can input a city name to get a 15-day weather forecast
 
 import React, { useState } from 'react';
-import { ethers } from 'ethers';
-import './App.css'; // Add basic styles and emoji animations
+import './App.css';
 
 function App() {
-  const [wallet, setWallet] = useState(null);
-  const [email, setEmail] = useState('');
-  const [isBound, setIsBound] = useState(false);
-  const [balance, setBalance] = useState(null);
+  const [city, setCity] = useState('');
+  const [forecast, setForecast] = useState([]);
   const [status, setStatus] = useState('');
 
-  const generateWallet = () => {
-    const newWallet = ethers.Wallet.createRandom();
-    setWallet(newWallet);
-    setStatus('🌟 Wallet generated! Save your keys securely.');
-    setTimeout(() => setStatus(''), 5000); // Clear status after 5 seconds
+  const getWeatherEmoji = (description) => {
+    if (description.includes('clear')) return '☀️';
+    if (description.includes('cloud')) return '☁️';
+    if (description.includes('rain')) return '🌧️';
+    if (description.includes('snow')) return '❄️';
+    if (description.includes('storm')) return '⛈️';
+    if (description.includes('drizzle')) return '🌦️';
+    return '🌡️';
   };
 
-  const handleEmailBinding = () => {
-    if (!wallet) {
-      setStatus('⚠️ Please generate a wallet first!');
+  const fetchWeather = async () => {
+    if (!city) {
+      setStatus('⚠️ Please enter a city name.');
       return;
     }
-    // Simulate email binding (replace with backend API call in production)
-    setIsBound(true);
-    setStatus('📧 Email successfully bound to your wallet!');
-    setTimeout(() => setStatus(''), 5000);
-  };
+    try {
+      setStatus('Fetching weather data... 🌍');
+      const response = await fetch(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&cnt=16&appid=YOUR_API_KEY&units=metric`
+      );
+      const data = await response.json();
 
-  const checkBalance = async () => {
-    if (!wallet) {
-      setStatus('⚠️ Please generate a wallet first!');
-      return;
+      if (data.cod !== '200') {
+        setStatus(`⚠️ Error: ${data.message}`);
+        setForecast([]);
+        return;
+      }
+
+      const dailyForecast = data.list.map((item) => ({
+        date: new Date(item.dt * 1000).toLocaleDateString(),
+        temp: item.main.temp,
+        description: item.weather[0].description,
+      }));
+
+      setForecast(dailyForecast);
+      setStatus('✅ Weather data fetched successfully!');
+    } catch (error) {
+      setStatus('⚠️ Failed to fetch weather data. Please try again.');
+      console.error(error);
     }
-    const provider = ethers.getDefaultProvider('goerli'); // Using Goerli testnet
-    const walletBalance = await provider.getBalance(wallet.address);
-    setBalance(ethers.utils.formatEther(walletBalance));
-    setStatus('💰 Balance fetched!');
-    setTimeout(() => setStatus(''), 5000);
   };
 
   return (
     <div className="App">
-      <h1>🌐 MailChain Wallet</h1>
-      <p>Create a wallet, bind your email, and manage ERC-20 tokens easily! 🚀</p>
+      <h1>🌤️ Weather Forecast App</h1>
+      <p>Enter a city to get the weather forecast for today and the next 15 days!</p>
 
-      {!wallet ? (
-        <button onClick={generateWallet} className="btn">
-          ✨ Generate Wallet
-        </button>
-      ) : (
-        <div>
-          <p>🔑 Wallet Address:</p>
-          <textarea value={wallet.address} readOnly className="textarea" />
+      <input
+        type="text"
+        placeholder="Enter city name"
+        value={city}
+        onChange={(e) => setCity(e.target.value)}
+        className="input"
+      />
+      <button onClick={fetchWeather} className="btn">
+        🌍 Get Forecast
+      </button>
 
-          {!isBound ? (
-            <div>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="input"
-              />
-              <button onClick={handleEmailBinding} className="btn">
-                📧 Bind Email
-              </button>
+      {status && <p className="status">{status}</p>}
+
+      {forecast.length > 0 && (
+        <div className="forecast">
+          {forecast.map((day, index) => (
+            <div key={index} className="day">
+              <p>{day.date}</p>
+              <p>{getWeatherEmoji(day.description)} {day.description}</p>
+              <p>🌡️ {day.temp}°C</p>
             </div>
-          ) : (
-            <p>✅ Email bound to wallet: {email}</p>
-          )}
-
-          <button onClick={checkBalance} className="btn">
-            💰 Check Balance
-          </button>
-
-          {balance && <p>Balance: {balance} ETH</p>}
+          ))}
         </div>
       )}
-
-      {status && <div className="status">{status}</div>}
     </div>
   );
 }
@@ -95,6 +93,14 @@ export default App;
 //   margin: 2rem;
 // }
 
+// .input {
+//   padding: 0.5rem;
+//   margin: 0.5rem;
+//   font-size: 1rem;
+//   border: 1px solid #ccc;
+//   border-radius: 5px;
+// }
+
 // .btn {
 //   padding: 0.5rem 1rem;
 //   margin: 0.5rem;
@@ -102,7 +108,7 @@ export default App;
 //   cursor: pointer;
 //   border: none;
 //   border-radius: 5px;
-//   background-color: #4caf50;
+//   background-color: #007BFF;
 //   color: white;
 //   transition: transform 0.2s;
 // }
@@ -111,27 +117,27 @@ export default App;
 //   transform: scale(1.1);
 // }
 
-// .textarea {
-//   width: 80%;
-//   height: 2rem;
-//   margin: 0.5rem;
-//   font-size: 0.9rem;
-//   padding: 0.5rem;
-//   border-radius: 5px;
-// }
-
-// .input {
-//   padding: 0.5rem;
-//   margin: 0.5rem;
-//   border: 1px solid #ccc;
-//   border-radius: 5px;
-// }
-
 // .status {
 //   margin: 1rem;
 //   font-size: 1rem;
 //   color: #f39c12;
 //   animation: fade-in 2s;
+// }
+
+// .forecast {
+//   display: flex;
+//   flex-wrap: wrap;
+//   justify-content: center;
+//   gap: 1rem;
+//   margin-top: 1rem;
+// }
+
+// .day {
+//   border: 1px solid #ccc;
+//   border-radius: 5px;
+//   padding: 1rem;
+//   width: 150px;
+//   text-align: center;
 // }
 
 // @keyframes fade-in {
